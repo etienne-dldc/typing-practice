@@ -4,7 +4,9 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "serve": "vite preview"
+    "serve": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "deploy": "yarn build && tar -cvf ./deploy.tar ./captain-definition ./dist/* && npx caprover deploy -t ./deploy.tar --default"
   },
   "dependencies": {
     "canvas-confetti": "^1.4.0",
