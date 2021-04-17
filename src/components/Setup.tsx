@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Layout } from "./Layout";
-import { actions, Dispatch } from "./state";
+import { actions, Dispatch } from "../logic/state";
 import { RocketLaunch } from "phosphor-react";
 
 type Props = {

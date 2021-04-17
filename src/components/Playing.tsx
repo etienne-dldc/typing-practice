@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Layout } from "./Layout";
-import { KeyEvents, typingState } from "./logic";
-import { useRenderAt } from "./useRenderAt";
-import { actions, Dispatch } from "./state";
+import { KeyEvents, typingState, actions, Dispatch } from "../logic/state";
+import { useRenderAt } from "../hooks/useRenderAt";
 import confetti from "canvas-confetti";
 import {
   CaretCircleDoubleRight,

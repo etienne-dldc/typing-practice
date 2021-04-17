@@ -1,7 +1,7 @@
 import React from "react";
 import { Setup } from "./Setup";
 import { Playing } from "./Playing";
-import { useSlice } from "./state";
+import { useSlice } from "../logic/state";
 
 export function App() {
   const [state, dispatch] = useSlice();
