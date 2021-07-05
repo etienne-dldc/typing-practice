@@ -42,13 +42,11 @@ export function Playing({ text, stopOnError, dispatch }: Props) {
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      console.log(e.key);
       if (e.key === "Enter") {
         // restart
         setPressed([]);
         return;
       }
-      console.log(e.key);
       if (state.status === "done") {
         return;
       }

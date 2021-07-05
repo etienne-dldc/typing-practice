@@ -25,7 +25,6 @@
     "canvas-confetti": "^1.4.0",
     "immer": "^9.0.3",
     "ky": "^0.28.5",
-    "local-sql": "^0.1.1",
     "phosphor-react": "^1.2.1",
     "react": "^17.0.0",
     "react-dom": "^17.0.0",
