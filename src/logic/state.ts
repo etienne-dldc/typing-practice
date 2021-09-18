@@ -9,12 +9,6 @@ export type State = {
   stopOnError: boolean;
 };
 
-// const initialState: State = {
-//   mode: "playing",
-//   text: "this is a test",
-//   stopOnError: true,
-// };
-
 export const { useSlice, actions } = createSlice({
   initialState: (): State => {
     return {
@@ -61,15 +55,9 @@ export type TypingState = {
   };
 };
 
-export function typingState(
-  text: string,
-  events: KeyEvents,
-  stopOnError: boolean
-): TypingState {
+export function typingState(text: string, events: KeyEvents, stopOnError: boolean): TypingState {
   const notStarted = events.length === 0;
-  const chars = text
-    .split("")
-    .map((char, index): Char => ({ char, state: "next" }));
+  const chars = text.split("").map((char, index): Char => ({ char, state: "next" }));
   if (notStarted) {
     return {
       status: "void",
