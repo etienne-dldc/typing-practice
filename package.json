@@ -13,7 +13,6 @@
   },
   "license": "MIT",
   "author": "Etienne Dldc",
-  "main": ".eslintrc.js",
   "scripts": {
     "build": "tsc && vite build",
     "deploy": "yarn build && tar -cvf ./deploy.tar ./captain-definition ./dist/* && npx caprover deploy -t ./deploy.tar --default",
@@ -28,6 +27,7 @@
     "immer": "^9.0.3",
     "interpolated-material-colors": "^2.0.1",
     "ky": "^0.28.5",
+    "nanoid": "^3.1.25",
     "phosphor-react": "^1.2.1",
     "react": "^17.0.0",
     "react-dom": "^17.0.0",

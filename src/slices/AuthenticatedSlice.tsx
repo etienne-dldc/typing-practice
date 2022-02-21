@@ -77,7 +77,16 @@ export const AuthenticatedSlice = createFactory(({ account }: Props): JSX.Elemen
   const current = useMemo(() => {
     return firstNotNullWithDefault(
       execIfTruthy(emptyProject, () => IdentitySlice.createElement({ children: <div>Empty Database</div> })),
-      execIfNotTrue(schemaValid.valid, () => IdentitySlice.createElement({ children: <div>Invalid Scheme</div> })),
+      execIfNotTrue(schemaValid.valid, () =>
+        IdentitySlice.createElement({
+          children: (
+            <div>
+              Invalid Scheme
+              <pre>{schemaValid.valid === false && JSON.stringify(schemaValid.errors, null, 2)}</pre>
+            </div>
+          ),
+        })
+      ),
       AppSlice.createElement({ account })
     );
   }, [account, emptyProject, schemaValid]);
