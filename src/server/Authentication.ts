@@ -4,7 +4,6 @@ export type MeUser = {
   id: string;
   email: string;
   name: string;
-  admin: boolean;
 };
 
 export async function getMeUser(token: string | null): Promise<MeUser | false> {
@@ -15,5 +14,5 @@ export async function getMeUser(token: string | null): Promise<MeUser | false> {
   if (!user) {
     return false;
   }
-  return { id: user.id, name: user.name, admin: user.isAdmin, email: user.email };
+  return { id: user.id, name: user.name, email: user.email };
 }

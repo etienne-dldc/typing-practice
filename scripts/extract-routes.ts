@@ -12,9 +12,7 @@ type Route = {
   file: string;
   path: Array<PathItem>;
   pathname: string;
-  importCode: string;
   pathFn: string;
-  modName: string;
 };
 type Routes = Array<Route>;
 
@@ -107,53 +105,29 @@ async function main() {
           throw new Error("Unknown path item type");
         })
         .join("/");
-    const modName =
-      "_" +
-      pathItem
-        .map((item) => {
-          if (item.type === "static") {
-            return snakeToCamel(item.name);
-          }
-          if (item.type === "param") {
-            return "$" + snakeToCamel(item.name);
-          }
-          if (item.type === "params") {
-            return "$$" + snakeToCamel(item.name);
-          }
-          throw new Error("Unknown path item type");
-        })
-        .join("__");
     const pathFn = `(${params === null ? "" : `params: ${params}`}) => \`${pathCompute}\``;
-    const relPath = path.relative(generatedDir, path.resolve(pagesDir, file));
-    const importCode = `import * as ${modName} from "${relPath}"`;
-    return { file, path: pathItem, pathname, pathFn, modName, importCode };
+    return { file, path: pathItem, pathname, pathFn };
   });
 
   const content = [
-    ...routes.map((route) => route.importCode),
-    ``,
     `export const routes = {`,
     ...routes.map((route) => {
-      return `  "${route.pathname}": { path: ${route.pathFn}, mod: ${route.modName} },`;
+      return `  "${route.pathname}": ${route.pathFn},`;
     }),
     `} as const`,
     ``,
     `export type Routes = typeof routes;`,
     `export type RoutePathname = keyof Routes;`,
-    `export type RouteParams = {[K in keyof Routes]: Parameters<Routes[K]['path']>[0] };`,
+    `export type RouteParams = {[K in keyof Routes]: Parameters<Routes[K]>[0] };`,
     `export type Route = { pathname: RoutePathname; href: string };`,
     `export type RouteArgs<K extends RoutePathname> = RouteParams[K] extends undefined ? [] : [params: RouteParams[K]];`,
     ``,
     `export function route<K extends RoutePathname>(pathname: K, ...args: RouteArgs<K>): Route {`,
-    `  return { pathname, href: routes[pathname].path((args[0] || {}) as any) };`,
+    `  return { pathname, href: routes[pathname]((args[0] || {}) as any) };`,
     `}`,
     ``,
     `export function routeHref<K extends RoutePathname>(pathname: K, ...args: RouteArgs<K>): string {`,
     `  return route(pathname, ...args).href;`,
-    `}`,
-    ``,
-    `export function routeModule<K extends RoutePathname>(pathname: K): Routes[K]["mod"] {`,
-    `  return routes[pathname].mod;`,
     `}`,
   ].join("\n");
   const contentFormatted = prettier.format(content, { filepath: routesFile });

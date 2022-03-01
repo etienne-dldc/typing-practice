@@ -27,7 +27,6 @@ const migrations = Migrations.create({
       name: "Etienne",
       email: "e.deladonchamps@gmail.com",
       token: createUserToken(),
-      isAdmin: true,
       practiceIds: [],
     });
   },
@@ -57,16 +56,7 @@ export function findAllUsers(): Array<User> {
 }
 
 export function insertUser(email: string, name: string): User {
-  return db.tables.users
-    .insert({
-      id: createUserId(),
-      token: createUserToken(),
-      email,
-      name,
-      isAdmin: false,
-      practiceIds: [],
-    })
-    .value();
+  return db.tables.users.insert({ id: createUserId(), token: createUserToken(), email, name, practiceIds: [] }).value();
 }
 
 export function deleteUserById(id: string): User | null {

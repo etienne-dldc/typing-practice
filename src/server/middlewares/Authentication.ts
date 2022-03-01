@@ -1,7 +1,7 @@
 import { createKey } from "miid";
-import { routes, route } from "src/generated/routes";
+import { routeHref } from "src/generated/routes";
 import { createAppError } from "src/logic/AppError";
-import { ApiResponse, DynamicMiddleware, GsspResponse, dynamicMiddlewareFactory } from "nextype/server";
+import { ApiResponse, DynamicMiddleware, GsspResponse, dynamicMiddlewareFactory, Middleware } from "nextype/server";
 import { getMeUser, MeUser } from "src/server/Authentication";
 import { getTokenCookie, removeTokenCookie } from "src/server/Cookies";
 
@@ -28,7 +28,7 @@ export const IsAnonymousMiddleware = dynamicMiddlewareFactory(async (ctx, next) 
     if (ctx.mode === "Gssp") {
       return GsspResponse.create({
         redirect: {
-          destination: route("/").href,
+          destination: routeHref("/"),
           permanent: false,
         },
       });
@@ -49,38 +49,21 @@ export const IsAnonymousMiddleware = dynamicMiddlewareFactory(async (ctx, next) 
   return res;
 });
 
-function createIsAuthenticatedMiddleware({ adminOnly = false }: { adminOnly?: boolean } = {}): DynamicMiddleware {
-  return dynamicMiddlewareFactory(async (ctx, next) => {
-    const { meUser } = ctx.getOrFail(AuthenticationKey.Consumer);
-    if (!meUser) {
-      if (ctx.mode === "Gssp") {
-        return GsspResponse.create({
-          redirect: {
-            destination: route("/connexion").href,
-            permanent: false,
-          },
-        });
-      }
-      throw createAppError({ type: "AuthenticationError", reason: "UserNotFound" });
+export const IsAuthenticatedMiddleware = dynamicMiddlewareFactory(async (ctx, next) => {
+  const { meUser } = ctx.getOrFail(AuthenticationKey.Consumer);
+  if (!meUser) {
+    if (ctx.mode === "Gssp") {
+      return GsspResponse.create({
+        redirect: {
+          destination: routeHref("/connexion"),
+          permanent: false,
+        },
+      });
     }
-    if (adminOnly && meUser.admin === false) {
-      if (ctx.mode === "Gssp") {
-        return GsspResponse.create({
-          redirect: {
-            destination: route("/").href,
-            permanent: false,
-          },
-        });
-      }
-      throw createAppError({ type: "Unauthorized", reason: "AdminOnly" });
-    }
-    return next(ctx.with(AuthenticatedKey.Provider(meUser)));
-  });
-}
-
-export const IsAuthenticatedMiddleware = createIsAuthenticatedMiddleware();
-
-export const IsAdminAuthenticatedMiddleware = createIsAuthenticatedMiddleware({ adminOnly: true });
+    throw createAppError({ type: "AuthenticationError", reason: "UserNotFound" });
+  }
+  return next(ctx.with(AuthenticatedKey.Provider(meUser)));
+});
 
 // export const IsAdminAuthenticatedMiddleware = dynamicMiddlewareFactory(async (ctx, next) => {});
 

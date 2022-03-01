@@ -1,5 +1,4 @@
 import { Route } from "nextype/server";
-import { user } from "./user";
 
 const hello = Route.query().resolve(async () => {
   return { hello: "world" };
@@ -7,7 +6,6 @@ const hello = Route.query().resolve(async () => {
 
 export const routes = {
   hello,
-  ...user,
 };
 
 export type Routes = typeof routes;

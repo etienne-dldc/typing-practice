@@ -1,8 +1,17 @@
-import { createGssp } from "nextype/server";
+import { createGssp, PropsMiddleware, TransformMiddleware } from "nextype/server";
 import { AuthenticationMiddleware, IsAuthenticatedMiddleware } from "src/server/middlewares/Authentication";
 
-export const getServerSideProps = createGssp(AuthenticationMiddleware(), IsAuthenticatedMiddleware());
+type Props = {};
 
-export default function IndexPage() {
+export const getServerSideProps = createGssp(
+  TransformMiddleware(),
+  AuthenticationMiddleware(),
+  IsAuthenticatedMiddleware(),
+  PropsMiddleware<Props>(async () => {
+    return {};
+  })
+);
+
+export default function IndexPage({}: Props): JSX.Element {
   return <div>Hello</div>;
 }
