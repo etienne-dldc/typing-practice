@@ -12,7 +12,9 @@ type Route = {
   file: string;
   path: Array<PathItem>;
   pathname: string;
-  fn: string;
+  importCode: string;
+  pathFn: string;
+  modName: string;
 };
 type Routes = Array<Route>;
 
@@ -39,12 +41,12 @@ async function main() {
         return false;
       }
       return true;
-    })
-    .map((page) => page.replace(EXTENSION_REG, ""));
+    });
 
-  const routes: Routes = files.map((file): Route => {
+  const routes: Routes = files.map((filePath): Route => {
+    const file = filePath.replace(EXTENSION_REG, "");
     const parts = file.split("/");
-    const path: Array<PathItem> = parts
+    const pathItem: Array<PathItem> = parts
       .map((part, index): PathItem | false => {
         const isParam = part.match(PARAM_REG);
         const isParams = part.match(PARAMS_REG);
@@ -63,7 +65,7 @@ async function main() {
       .filter((item): item is PathItem => item !== false);
     const pathname =
       "/" +
-      path
+      pathItem
         .map((item) => {
           if (item.type === "param") {
             return `[${item.name}]`;
@@ -74,7 +76,7 @@ async function main() {
           return item.name;
         })
         .join("/");
-    const paramsItems = path
+    const paramsItems = pathItem
       .map((item): string | null => {
         if (item.type === "static") {
           return null;
@@ -88,11 +90,10 @@ async function main() {
         throw new Error("Unknown path item type");
       })
       .filter((v): v is string => v !== null);
-    const params =
-      paramsItems.length === 0 ? null : `{ ${paramsItems.join("; ")} }`;
+    const params = paramsItems.length === 0 ? null : `{ ${paramsItems.join("; ")} }`;
     const pathCompute =
       "/" +
-      path
+      pathItem
         .map((item) => {
           if (item.type === "static") {
             return item.name;
@@ -106,26 +107,53 @@ async function main() {
           throw new Error("Unknown path item type");
         })
         .join("/");
-    const fn = `(${
-      params === null ? "" : `params: ${params}`
-    }) => \`${pathCompute}\``;
-    return { file, path, pathname, fn };
+    const modName =
+      "_" +
+      pathItem
+        .map((item) => {
+          if (item.type === "static") {
+            return snakeToCamel(item.name);
+          }
+          if (item.type === "param") {
+            return "$" + snakeToCamel(item.name);
+          }
+          if (item.type === "params") {
+            return "$$" + snakeToCamel(item.name);
+          }
+          throw new Error("Unknown path item type");
+        })
+        .join("__");
+    const pathFn = `(${params === null ? "" : `params: ${params}`}) => \`${pathCompute}\``;
+    const relPath = path.relative(generatedDir, path.resolve(pagesDir, file));
+    const importCode = `import * as ${modName} from "${relPath}"`;
+    return { file, path: pathItem, pathname, pathFn, modName, importCode };
   });
 
   const content = [
+    ...routes.map((route) => route.importCode),
+    ``,
     `export const routes = {`,
     ...routes.map((route) => {
-      return `  "${route.pathname}": ${route.fn},`;
+      return `  "${route.pathname}": { path: ${route.pathFn}, mod: ${route.modName} },`;
     }),
     `} as const`,
     ``,
     `export type Routes = typeof routes;`,
     `export type RoutePathname = keyof Routes;`,
-    `export type RouteParams = {[K in keyof Routes]: Parameters<Routes[K]>[0] };`,
+    `export type RouteParams = {[K in keyof Routes]: Parameters<Routes[K]['path']>[0] };`,
     `export type Route = { pathname: RoutePathname; href: string };`,
+    `export type RouteArgs<K extends RoutePathname> = RouteParams[K] extends undefined ? [] : [params: RouteParams[K]];`,
     ``,
-    `export function route<K extends RoutePathname>(pathname: K, ...args: RouteParams[K] extends undefined ? [] : [params: RouteParams[K]]): Route {`,
-    `  return { pathname, href: routes[pathname]((args[0] || {}) as any) };`,
+    `export function route<K extends RoutePathname>(pathname: K, ...args: RouteArgs<K>): Route {`,
+    `  return { pathname, href: routes[pathname].path((args[0] || {}) as any) };`,
+    `}`,
+    ``,
+    `export function routeHref<K extends RoutePathname>(pathname: K, ...args: RouteArgs<K>): string {`,
+    `  return route(pathname, ...args).href;`,
+    `}`,
+    ``,
+    `export function routeModule<K extends RoutePathname>(pathname: K): Routes[K]["mod"] {`,
+    `  return routes[pathname].mod;`,
     `}`,
   ].join("\n");
   const contentFormatted = prettier.format(content, { filepath: routesFile });
@@ -135,7 +163,5 @@ async function main() {
 }
 
 function snakeToCamel(str: string): string {
-  return str.replace(/([-_][a-z])/g, (group) =>
-    group.toUpperCase().replace("-", "").replace("_", "")
-  );
+  return str.replace(/([-_][a-z])/g, (group) => group.toUpperCase().replace("-", "").replace("_", ""));
 }
