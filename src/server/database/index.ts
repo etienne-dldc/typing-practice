@@ -36,8 +36,8 @@ const migrations = Migrations.create({
 export type Db = typeof db;
 
 const db = migrations.applySync({
-  databasePath: path.resolve(ServerEnvs.DATABASE_PATH),
-  migrationDatabasePath: path.resolve(ServerEnvs.MIGRATION_DATABASE_PATH),
+  databasePath: path.resolve(ServerEnvs.DATA_PATH, "database.db"),
+  migrationDatabasePath: path.resolve(ServerEnvs.DATA_PATH, "migration-database.db"),
 });
 
 export function findUserByToken(token: string): User | null {
@@ -120,7 +120,7 @@ const findExpiredOtpQuery = db.tables.emailOtp
   .where(({ indexes, params }) => sql.Expr.lte(indexes.otpExpiration, params.now));
 
 export function deleteExpiredOtp() {
-  db.tables.emailOtp.select(findExpiredOtpQuery, { now: new Date() }).deleteAll();
+  db.tables.emailOtp.select(findExpiredOtpQuery, { now: new Date() }).delete();
 }
 
 export function insertPractice(userId: string, name: string, content: string): string {

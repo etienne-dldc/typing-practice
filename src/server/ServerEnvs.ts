@@ -2,8 +2,7 @@ import * as z from "zod";
 
 const RawEnvsValidators = z.object({
   NODE_ENV: z.union([z.literal("development"), z.literal("production")]),
-  DATABASE_PATH: z.string(),
-  MIGRATION_DATABASE_PATH: z.string(),
+  DATA_PATH: z.string(),
   SENDGRID_API_KEY: z.string(),
   SENDGRID_SENDER: z.string(),
   SENDGRID_SENDER_NAME: z.string(),
