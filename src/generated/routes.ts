@@ -1,4 +1,6 @@
 export const routes = {
+  "/api/connect": () => `/api/connect`,
+  "/api/logout": () => `/api/logout`,
   "/api/rpc/[route]": (params: { route: string }) => `/api/rpc/${params.route}`,
   "/connexion": () => `/connexion`,
   "/": () => `/`,
