@@ -1,9 +1,8 @@
 import { Migrations, sql, Expr } from "zendb";
-import { schema as v001, User } from "./migrations/001";
+import { Practice, schema as v001, User } from "./migrations/001";
 import { customAlphabet } from "nanoid";
 import { ServerEnvs } from "src/server/ServerEnvs";
 import path from "path";
-import { addMinutes, isBefore } from "date-fns";
 
 export * from "./migrations/001";
 
@@ -14,8 +13,6 @@ const createPracticeId = customAlphabet(ALPHANUM_ALPHABET, 12);
 const createUserId = customAlphabet(ALPHANUM_ALPHABET, 12);
 const createStatId = customAlphabet(ALPHANUM_ALPHABET, 16);
 const createUserToken = customAlphabet(ALPHANUM_ALPHABET, 32);
-const createOtpId = customAlphabet(ALPHANUM_ALPHABET, 12);
-const createOtp = customAlphabet(OTP_ALPHABET, 6);
 
 const migrations = Migrations.create({
   id: "init",
@@ -63,56 +60,6 @@ export function deleteUserById(id: string): User | null {
   return db.tables.users.findByKey(id).delete().value();
 }
 
-export function createOtpForEmail(userEmail: string): {
-  otp: string;
-  id: string;
-} {
-  const otp = createOtp();
-  const id = createOtpId();
-  const now = new Date();
-  const otpExpiration = addMinutes(now, 15);
-  db.tables.emailOtp.insert({
-    createdAt: now,
-    email: userEmail,
-    id,
-    otp,
-    otpExpiration,
-  });
-  return { otp, id };
-}
-
-type OtpStatus = { status: "INVALID" } | { status: "VALID" } | { status: "EXPIRED" };
-
-const findOtpByEmailAndIdQuery = db.tables.emailOtp
-  .prepare({ email: sql.Value.text(), id: sql.Value.text() })
-  .where(({ indexes, params }) =>
-    sql.Expr.and(sql.Expr.eq(indexes.email, params.email), sql.Expr.eq(indexes.id, params.id))
-  );
-
-export function validateOtp(otpId: string, userEmail: string, otp: string): OtpStatus {
-  const res = db.tables.emailOtp.select(findOtpByEmailAndIdQuery, { email: userEmail, id: otpId }).maybeOne().value();
-  if (res === null) {
-    return { status: "INVALID" };
-  }
-  const optUp = otp.toUpperCase();
-  if (res.otp !== optUp) {
-    return { status: "INVALID" };
-  }
-  const now = new Date();
-  if (isBefore(now, res.otpExpiration)) {
-    return { status: "VALID" };
-  }
-  return { status: "EXPIRED" };
-}
-
-const findExpiredOtpQuery = db.tables.emailOtp
-  .prepare({ now: sql.Value.date() })
-  .where(({ indexes, params }) => sql.Expr.lte(indexes.otpExpiration, params.now));
-
-export function deleteExpiredOtp() {
-  db.tables.emailOtp.select(findExpiredOtpQuery, { now: new Date() }).delete();
-}
-
 export function insertPractice(userId: string, name: string, content: string): string {
   const id = createPracticeId();
   db.tables.practices.insert({ id, name, content });
@@ -126,6 +73,10 @@ export function updatePracticeName(practiceId: string, name: string): void {
 
 export function updatePracticeContent(practiceId: string, content: string): void {
   db.tables.practices.findByKey(practiceId).updateIfExists((prev) => ({ ...prev, content }));
+}
+
+export function findPracticeById(id: string): Practice | null {
+  return db.tables.practices.findByKey(id).value();
 }
 
 export function insertStat(practiceId: string, userId: string, duration: number, accuracy: number, cpm: number) {

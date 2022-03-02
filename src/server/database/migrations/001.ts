@@ -9,18 +9,6 @@ export type User = {
   practiceIds: Array<string>;
 };
 
-export type EmailOtp = {
-  id: string;
-  email: string;
-  otp: string;
-  createdAt: Date;
-  otpExpiration: Date;
-};
-
-export type AllowedEmail = {
-  email: string;
-};
-
 export type Practice = {
   id: string;
   name: string;
@@ -45,13 +33,6 @@ export const schema = createSchema({
       .key(sql.Value.text(), (user) => user.id)
       .index("email", sql.Value.text().unique(), (user) => user.email)
       .index("token", sql.Value.text().unique(), (user) => user.token),
-    allowedEmails: table<AllowedEmail>().key(sql.Value.text(), (email) => email.email),
-    emailOtp: table<EmailOtp>()
-      .key(sql.Value.text(), (otp) => otp.id)
-      .index("email", sql.Value.text(), (otp) => otp.email)
-      .index("otp", sql.Value.text(), (otp) => otp.otp)
-      .index("id", sql.Value.text(), (otp) => otp.id)
-      .index("otpExpiration", sql.Value.date(), (otp) => otp.otpExpiration),
     practices: table<Practice>().key(sql.Value.text(), (practice) => practice.id),
     stats: table<Stat>()
       .key(sql.Value.text(), (stat) => stat.id)

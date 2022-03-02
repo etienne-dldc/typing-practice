@@ -2,20 +2,18 @@ import { ApiError } from "nextype/shared";
 import { expectNever } from "./Utils";
 
 export type AppError =
-  | { type: "BarError" }
   | { type: "AuthenticationError"; reason: "UserNotFound" | "OtpExpired" | "OtpInvalid" | "MustBeAnonymous" }
   | { type: "Unauthorized"; reason: "AdminOnly" }
-  | { type: "WhitelistError"; reason: "EmailAlreadyInWhitelist" | "EmailNotInWhitelist" };
+  | { type: "MissingProvider"; provider: "User" };
 
 export function getAppErrorStatus(error: AppError): number {
   switch (error.type) {
-    case "BarError":
     case "AuthenticationError":
       return 401;
     case "Unauthorized":
       return 403;
-    case "WhitelistError":
-      return 400;
+    case "MissingProvider":
+      return 500;
     default:
       return expectNever(error);
   }
