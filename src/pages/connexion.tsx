@@ -1,4 +1,3 @@
-import { GetServerSideProps } from "next";
 import { createGssp, PropsMiddleware } from "nextype/server";
 import { AuthenticationMiddleware, IsAnonymousMiddleware } from "src/server/middlewares/Authentication";
 import { ServerEnvs } from "src/server/ServerEnvs";

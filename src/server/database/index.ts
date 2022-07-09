@@ -7,7 +7,6 @@ import path from "path";
 export * from "./migrations/001";
 
 const ALPHANUM_ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-const OTP_ALPHABET = "123456789ABCDEFGHJKLMNPRSTUVWXYZ";
 
 const createPracticeId = customAlphabet(ALPHANUM_ALPHABET, 12);
 const createUserId = customAlphabet(ALPHANUM_ALPHABET, 12);

@@ -2,7 +2,7 @@ import { ApiError } from "nextype/shared";
 import { expectNever } from "./Utils";
 
 export type AppError =
-  | { type: "AuthenticationError"; reason: "UserNotFound" | "OtpExpired" | "OtpInvalid" | "MustBeAnonymous" }
+  | { type: "AuthenticationError"; reason: "UserNotFound" | "MustBeAnonymous" }
   | { type: "Unauthorized"; reason: "AdminOnly" }
   | { type: "MissingProvider"; provider: "User" };
 
